@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <!--Codificação de caracteres, acentos e emojis aparecem sem erros-->
+    <meta charset="UTF-8">
+    <!--Controla o layout em dispositivos móveis-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Atendimento Clínico</title>
+    <!--CSS que define o visual de todos os elementos das páginas-->
+    <style>
+        .perfil {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            padding: 16px;
+            background: var(--azul-claro);
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .perfil strong,
+        .perfil span {
+            display: block;
+        }
+
+        .resumo {
+            background: #f0f8fa;
+            border: 1px solid #cde8ed;
+            border-radius: 10px;
+            padding: 18px;
+            line-height: 1.55;
+            margin: 12px 0;
+        }
+
+        .medicamento {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr 1fr 1fr auto;
+            gap: 8px;
+            align-items: end;
+            margin: 10px 0;
+        }
+
+        .impressao {
+            display: none;
+        }
+
+        @media print {
+            body>*:not(#area-impressao) {
+                display: none !important;
+            }
+
+            #area-impressao {
+                display: block !important;
+                padding: 30px;
+                color: #000;
+                font-family: Arial, sans-serif;
+            }
+
+            #area-impressao h1 {
+                color: #000;
+                font-size: 24px;
+            }
+
+            #area-impressao h2 {
+                color: #000;
+                border-bottom: 1px solid #000;
+                padding-bottom: 8px;
+            }
+
+            .assinatura {
+                margin-top: 90px;
+                border-top: 1px solid #000;
+                padding-top: 8px;
+                width: 320px;
+            }
+        }
+
+        .oculto {
+            display: none !important;
+        }
+
+        .painel {
+            display: none;
+            margin-top: 28px;
+            border: 1px solid var(--borda);
+            border-radius: 14px;
+            background: var(--branco);
+            box-shadow: var(--sombra);
+            padding: clamp(20px, 4vw, 32px);
+        }
+
+        .painel {
+            display: none;
+        }
+
+        .painel.ativo {
+            display: block;
+        }
+
+        .autenticacao {
+            width: min(510px, 90vw);
+            margin: 52px auto;
+        }
+
+        body {
+            margin: 0;
+            background: var(--fundo);
+            color: var(--texto);
+            font-family: "Commissioner", sans-serif;
+            font-optical-sizing: auto;
+        }
+
+        .autenticacao .painel {
+            display: block;
+            margin-top: 0;
+        }
+
+        .autenticacao h1 {
+            font-size: 2rem;
+        }
+
+        .troca-autenticacao {
+            margin-top: 18px;
+            text-align: center;
+            color: var(--muted);
+            font-size: .9rem;
+        }
+
+        .troca-autenticacao button {
+            padding: 0;
+            color: var(--ciano);
+            background: transparent;
+        }
+
+        .grid-form {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        label {
+            display: block;
+            color: var(--texto);
+            font-weight: 650;
+            font-size: .88rem;
+        }
+
+
+        input,
+        textarea,
+        select {
+            display: block;
+            width: 100%;
+            margin-top: 7px;
+            padding: 12px;
+            border: 1px solid #cbd9e5;
+            border-radius: 8px;
+            color: var(--texto);
+            background: white;
+            font: inherit;
+        }
+
+
+        .mensagem {
+            margin: 16px 0 0;
+            padding: 12px 14px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .mensagem.visivel {
+            display: block;
+        }
+
+        .erro {
+            color: #8d2020;
+            background: #fff0f0;
+        }
+
+        .sucesso {
+            color: #176a45;
+            background: #eaf8f1;
+        }
+
+
+        header {
+            background: var(--branco);
+            border-bottom: 1px solid var(--borda);
+            padding: 22px 5vw;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .marca {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--azul);
+            font-weight: 750;
+            font-size: 1.25rem;
+        }
+
+        .marca span {
+            display: grid;
+            place-items: center;
+            width: 38px;
+            height: 38px;
+            color: white;
+            background: var(--ciano);
+            border-radius: 10px;
+            font-size: 1.4rem;
+        }
+
+        header small {
+            color: var(--muted);
+        }
+
+
+        main {
+            width: min(1120px, 90vw);
+            margin: 44px auto;
+        }
+
+
+        .campo-largo {
+            grid-column: 1 / -1;
+        }
+
+        .acoes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .contador-fila,
+        .fila-controles {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            margin: 14px 0;
+        }
+
+        .contador {
+            padding: 8px 12px;
+            border-radius: 8px;
+            background: var(--azul-claro);
+            font-size: .88rem;
+        }
+
+        .fila-item {
+            border: 1px solid var(--borda);
+            border-left: 5px solid var(--ciano);
+            border-radius: 10px;
+            padding: 16px;
+            margin: 12px 0;
+        }
+
+        .fila-item.critico {
+            border-left-color: #c62828;
+            background: #fff5f5;
+        }
+
+        .fila-topo {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .fila-meta {
+            color: var(--muted);
+            font-size: .86rem;
+            margin: 8px 0;
+        }
+
+        .tempo-espera {
+            color: #8d2020;
+            font-weight: 700;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 9px;
+            border-radius: 99px;
+            color: white;
+            font-size: .76rem;
+        }
+
+        .vazio {
+            color: var(--muted);
+            padding: 15px 0;
+        }
+
+        button.secundario {
+            color: var(--azul);
+            background: var(--azul-claro);
+        }
+
+        .alerta {
+            color: #754e05;
+            background: #fff5d9;
+            border-left: 4px solid #e7aa20;
+        }
+
+        .emergencia {
+            background: #c62828;
+        }
+
+        .muito-urgente {
+            background: #ef6c00;
+        }
+
+        .urgente {
+            background: #f6b400;
+        }
+
+        .pouco-urgente {
+            background: #4b9e55;
+        }
+
+        .nao-urgente {
+            background: #2095b0;
+        }
+    </style>
+</head>
+<!--HTML que cria os elementos das páginas-->
+
+<body>
+    <!--CABEÇALHO-->
+    <header>
+        <div class="marca">Sistema de Atendimento Clínico</div>
+        <div id="usuario-logado" class="usuario-logado oculto">
+            <span id="nome-usuario"></span>
+            <button type="button" id="sair">Sair</button>
+        </div>
+        <small id="subtitulo-cabecalho">Atendimento e Triagem</small>
+    </header>
+    <!--TELA DE LOGIN-->
+    <section id="tela-login" class="autenticacao">
+        <div id="formulario-login" class="painel">
+            <h1>Acesso da Triagem e painel clínico</h1>
+            <p>Insira seu login e senha cadastrados</p>
+            <form id="form-login">
+                <label>Usuário
+                    <input id="login-usuario" autocomplete="username" required>
+                </label>
+                <label>Senha
+                    <input id="login-senha" type="password" autocomplete="current-password" required>
+                </label>
+                <div class="acoes">
+                    <button>Entrar</button>
+                </div>
+            </form>
+            <!--Mensagem de erro (JS)-->
+            <div id="mensagem-login" class="mensagem"></div>
+            <!--OPÇÃO DE CRIAR CONTA-->
+            <p class="link cadastro">Ainda não possui acesso?
+                <button type="Button" id="mostrar-cadastro-login">Criar conta</button>
+            </p>
+        </div>
+        <!--TELA DE CRIAÇÃO DE CONTA-->
+        <div id="tela-criar-conta" class="painel oculto">
+            <h1>Cadastro de acesso</h1>
+            <p>Insira as informações que serão usadas para acessar o sistema</p>
+            <form id="formulario-conta">
+                <label>Nome completo<input id="conta-nome" required></label>
+                <label>Usuário<input id="conta-usuario" autocomplete="username" required></label>
+                <label>Senha<input id="conta-senha" type="password" minlength="4" autocomplete="new-password"
+                        required></label>
+                <label>Perfil
+                    <select id="conta-perfil" required>
+                        <option value="triagem">Triagem</option>
+                        <option value="medico">Médico</option>
+                    </select>
+                </label>
+                <div class="acoes"><button>Criar conta</button></div>
+            </form>
+            <div id="mensagem-conta" class="mensagem"></div>
+            <p class="troca autenticacao">Já possui acesso? <button type="button" id="mostrar-login">Voltar para
+                    login</button></p>
+        </div>
+    </section>
+    <!--TELA PRINCIPAL-->
+    <main id="main" class="oculto">
+        <section class="intro">
+            <h1>Painel Principal</h1>
+            <p>Realização de triagem, consulta de dados, cadastro de pacientes e atendimento médico</p>
+        </section>
+        <section class="cards">
+            <!--FUNÇÃO DA TRIAGEM E DO MÉDICO-->
+            <article class="card" data-perfis="triagem medico">
+                <div>
+                    <div class="card-icon">⌕</div>
+                    <h2>Buscar paciente</h2>
+                    <p>Acessar o registro do paciente, seus dados e histórico</p>
+                </div>
+                <button type="button" data-abrir="busca">Buscar paciente</button>
+            </article>
+            <!--FUNÇÕES DA TRIAGEM-->
+            <article class="card" data-perfis="triagem">
+                <div>
+                    <div class="card-icon">+</div>
+                    <h2>Cadastrar paciente</h2>
+                    <p>Adicionar novo paciente ao sistema</p>
+                </div>
+                <button type="button" data-abrir="cadastro">Novo Cadastro</button>
+            </article>
+            <article class="card" data-perfis="triagem">
+                <div>
+                    <div class="card-icon">▣</div>
+                    <h2>Atendimento</h2>
+                    <p>Realizar triagem e registro de sintomas</p>
+                </div>
+                <button type="button" data-abrir="atendimento">Triagem</button>
+            </article>
+            <!--FUNÇÃO DO MÉDICO-->
+            <article class="card" data-perfis="medico">
+                <div>
+                    <div class="card-icon">☷</div>
+                    <h2>Fila médica</h2>
+                    <p>Atender pacientes por ordem de chegada</p>
+                </div>
+                <button type="button" data-abrir="fila">Acessar fila</button>
+            </article>
+        </section>
+        <!--TELA DE BUSCA DE PACIENTES-->
+        <section id="tela-busca" class="painel" data-perfis="triagem medico">
+            <div class="painel-topo">
+                <div>
+                    <h2>Buscar paciente</h2>
+                    <p>Informe o CPF para encontrar o cadastro do paciente</p>
+                </div>
+                <button class="fechar" data-fechar="busca" aria-label="Fechar">x</button>
+            </div>
+            <form id="form-busca">
+                <label>CPF
+                    <input id="cpf-busca" inputmode="numeric" maxlength="14" placeholder="000.000.000-00" required>
+                </label>
+                <div class="acoes">
+                    <button>Consultar</button>
+                </div>
+            </form>
+            <div id="resultado-busca"></div>
+        </section>
+        <!--TELA DE ATENDIMENTO DA TRIAGEM-->
+        <section id="tela-atendimento" class="painel" data-perfis="triagem">
+            <div class="painel-topo">
+                <div>
+                    <h2>Registrar atendimento</h2>
+                    <p>Selecione o paciente e descreva a queixa principal</p>
+                </div>
+                <button class="fechar" data-fechar="atendimento" aria-label="Fechar">x</button>
+            </div>
+            <form id="form-atendimento">
+                <label>CPF do paciente
+                    <input id="cpf-atendimento" inputmode="numeric" maxlength="14" placeholder="000.000.000-00"
+                        required>
+                </label>
+                <!--Duas divs vazias de propósito, que o JavaScript preenche após o CPF ser digitado-->
+                <div id="perfil-atendimento"></div>
+                <div id="alerta-alergia"></div>
+                <label>Sintomas
+                    <textarea id="sintomas" placeholder="Descreva os sintomas apresentados..." required></textarea>
+                </label>
+                <label>Classificação de risco</label>
+                <!--Botões de risco-->
+                <div class="risco-opcoes">
+                    <!--Todos os botões têm o nome "risco", dessa maneira apenas um deles pode ser selecionado por vez-->
+                    <label class="emergencia">Emergência
+                        <input type="radio" name="risco" value="Emergência">
+                    </label>
+                    <label class="muito-urgente">Muito Urgente
+                        <input type="radio" name="risco" value="Muito Urgente">
+                    </label>
+                    <label class="urgente">Urgente
+                        <input type="radio" name="risco" value="Urgente">
+                    </label>
+                    <label class="pouco-urgente">Pouco Urgente
+                        <input type="radio" name="risco" value="Pouco Urgente">
+                    </label>
+                    <label class="nao-urgente">Não Urgente
+                        <input type="radio" name="risco" value="Não Urgente">
+                    </label>
+                </div>
+                <div class="acoes">
+                    <button>Salvar atendimento</button>
+                </div>
+            </form>
+            <div id="mensagem-atendimento" class="mensagem"></div>
+        </section>
+        <!--TELA DE CADASTRO DE PACIENTE-->
+        <section id="tela-cadastro" class="painel" data-perfis="triagem">
+            <div class="painel-topo">
+                <div>
+                    <h2>Novo Cadastro</h2>
+                    <p>Preencha os dados básicos do paciente</p>
+                </div>
+                <button class="fechar" data-fechar="cadastro" aria-label="Fechar">x</button>
+            </div>
+            <form id="form-cadastro" class="grid-form">
+                <label>CPF
+                    <input id="cpf-cadastro" inputmode="numeric" maxlength="14" placeholder="000.000.000-00" required>
+                </label>
+                <label>Nome completo
+                    <input id="nome-cadastro" required>
+                </label>
+                <label>Data de nascimento
+                    <input id="nascimento-cadastro" type="date" required>
+                </label>
+                <label>Alergias
+                    <input id="alergias-cadastro" placeholder="Deixe em branco se não houver">
+                </label>
+                <div class="acoes campo-largo">
+                    <button>Cadastrar paciente</button>
+                </div>
+            </form>
+            <div id="mensagem-cadastro" class="mensagem"></div>
+        </section>
+        <!--TELA DA FILA MÉDICA-->
+        <section id="tela-fila" class="painel" data-perfis="medico">
+            <div class="painel-topo">
+                <div>
+                    <h2>Fila de Atendimento Médico</h2>
+                    <p>Os pacientes entram automaticamente após a triagem</p>
+                </div>
+                <button class="fechar" data-fechar="fila" aria-label="Fechar">x</button>
+            </div>
+            <!--Contadores-->
+            <div class="contador-fila">
+                <span class="contador">Aguardando: <strong id="contador-aguardando">0</strong></span>
+                <span class="contador">Em atendimento: <strong id="contador-atendimento">0</strong></span>
+                <span class="contador">Finalizado: <strong id="contador-finalizados">0</strong></span>
+            </div>
+            <!--Controles-->
+            <div class="fila-controles">
+                <button type="button" id="ordenar-chegada">Ordem de chegada</button>
+                <button type="button" class="secundario" id="ordenar-prioridade">Por prioridade</button>
+                <button type="button" id="chamar-proximo">Chamar próximo</button>
+            </div>
+            <div id="mensagem-fila" class="mensagem"></div>
+            <!--div para o JS desenhar os cards-->
+            <div id="lista-fila"></div>
+        </section>
+        <!--TELA DE ATENDIMENTO MÉDICO-->
+        <section id="tela-medico" class="painel" data-perfis="medico">
+            <div class="painel-topo">
+                <div>
+                    <h2>Atendimento médico</h2>
+                    <p id="titulo-atendimento-medico"></p>
+                </div>
+                <button class="fechar" id="fechar-medico" aria-label="Voltar para a fila">x</button>
+            </div>
+            <!--Caixas preenchidas pelo JavaScript-->
+            <div id="dados-atendimento-medico"></div>
+            <div id="resumo-atendimento-medico" class="resumo"></div>
+            <form id="form-medico" class="grid-form">
+                <label>Diagnóstico
+                    <input id="medico-diagnostico" required>
+                </label>
+                <!--O CRM não é guardado no banco. Ele só serve para sair na assinatura da receita-->>
+                <label>CRM do médico
+                    <input id="medico-crm" placeholder="Usado na assinatura da receita">
+                </label>
+                <label class="campo-largo">Conduta
+                    <textarea id="medico-conduta"></textarea>
+                </label>
+                <label class="campo-largo">Observações
+                    <textarea id="medico-observacoes"></textarea>
+                </label>
+                <div class="campo-largo">
+                    <h3>Receita</h3>
+                    <!--Cada medicamento é uma linha criada pelo JavaScript-->
+                    <div id="lista-medicamentos"></div>
+                    <button type="button" class="secundario" id="adicionar-medicamento">Adicionar medicamento</button>
+                </div>
+                <div class="acoes campo-largo">
+                    <button type="submit">Finalizar atendimento</button>
+                    <button type="button" class="secundario" id="imprimir-receita">Imprimir receita</button>
+                </div>
+            </form>
+            <div id="mensagem-medico" class="mensagem"></div>
+        </section>
+    </main>
+
+    <!--ÁREA DE IMPRESSÃO: invisível na tela, só aparece no papel-->
+    <section id="area-impressao" class="impressao">
+        <h1>Sistema de Atendimento Clínico</h1>
+        <h2>Receita médica</h2>
+        <p id="impressao-paciente"></p>
+        <p id="impressao-data"></p>
+        <div id="impressao-conteudo"></div>
+        <div class="assinatura">Médico: <span id="impressao-medico"></span><br>Assinatura e carimbo</div>
+    </section>
+
+    <!--Biblioteca do SUPABASE-->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!--JavaScript que define a parte funcional de cada elemento-->
+    <script>
+        // ===== CONFIGURAÇÃO: endereço do backend Java =====
+        const API = "http://localhost:8080/api";
+        let sessao = JSON.parse(sessionStorage.getItem("sessao") || "null"); // Usuário logado
+        let fila = [], ordem = "chegada", atual = null;                      // Fila e atendimento aberto
+
+        // ===== AUXILIARES =====
+        const $ = (id) => document.getElementById(id);
+        const num = (v) => v.replace(/\D/g, "");                              // "123.456" -> "123456"
+        const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) =>
+            ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+        function msg(id, texto, tipo = "erro") { const e = $(id); e.textContent = texto; e.className = "mensagem visivel " + tipo; }
+        function idade(n) { const d = new Date(n + "T00:00:00"), h = new Date(); let a = h.getFullYear() - d.getFullYear();
+            if (h < new Date(h.getFullYear(), d.getMonth(), d.getDate())) a--; return a; }
+        const classeUrg = (u) => u.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, "-");
+        function espera(d) { const m = Math.max(0, Math.floor((Date.now() - new Date(d)) / 60000)); return m < 60 ? m + " min" : Math.floor(m / 60) + "h " + (m % 60) + "min"; }
+        function blocoPerfil(nome, cpf, nasc, alergias) {
+            return `<div class="perfil"><div><strong>Nome</strong><span>${esc(nome)}</span></div><div><strong>CPF</strong><span>${esc(cpf)}</span></div>
+            <div><strong>Idade</strong><span>${nasc ? idade(nasc) + " anos" : "-"}</span></div><div><strong>Alergias</strong><span>${esc(alergias)}</span></div></div>`;
+        }
+
+        // Máscara do CPF enquanto digita
+        ["cpf-busca", "cpf-atendimento", "cpf-cadastro"].forEach((id) => $(id).addEventListener("input", (e) => {
+            e.target.value = num(e.target.value).slice(0, 11).replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+        }));
+
+        // ===== COMUNICAÇÃO COM O JAVA (todas as telas usam esta função) =====
+        async function api(caminho, metodo = "GET", corpo = null) {
+            let r;
+            try {
+                r = await fetch(API + caminho, { method: metodo, headers: { "Content-Type": "application/json" },
+                    body: corpo ? JSON.stringify(corpo) : undefined });
+            } catch (e) { throw new Error("Não foi possível conectar ao servidor. O Java está rodando?"); }
+            let d = null; try { d = await r.json(); } catch (e) {}
+            if (!r.ok) throw new Error((d && d.message) || "Erro " + r.status);
+            return d;
+        }
+
+        // ===== LOGIN / CRIAR CONTA / SAIR =====
+        $("mostrar-cadastro-login").onclick = () => { $("formulario-login").classList.add("oculto"); $("tela-criar-conta").classList.remove("oculto"); };
+        $("mostrar-login").onclick = () => { $("tela-criar-conta").classList.add("oculto"); $("formulario-login").classList.remove("oculto"); };
+
+        $("formulario-conta").onsubmit = async (e) => {            // POST /api/auth/cadastro
+            e.preventDefault();
+            try {
+                await api("/auth/cadastro", "POST", { nome: $("conta-nome").value, usuario: $("conta-usuario").value,
+                    senha: $("conta-senha").value, perfil: $("conta-perfil").value });
+                msg("mensagem-conta", "Conta criada! Volte para o login.", "sucesso"); e.target.reset();
+            } catch (x) { msg("mensagem-conta", x.message); }
+        };
+
+        $("form-login").onsubmit = async (e) => {                  // POST /api/auth/login
+            e.preventDefault();
+            try {
+                sessao = await api("/auth/login", "POST", { usuario: $("login-usuario").value, senha: $("login-senha").value });
+                sessionStorage.setItem("sessao", JSON.stringify(sessao));
+                e.target.reset(); $("mensagem-login").className = "mensagem"; iniciar();
+            } catch (x) { msg("mensagem-login", x.message); }
+        };
+
+        $("sair").onclick = () => { sessao = null; sessionStorage.removeItem("sessao"); iniciar(); };
+
+        // Mostra login OU painel, e esconde o que o perfil não pode usar
+        function iniciar() {
+            const on = !!sessao;
+            $("tela-login").classList.toggle("oculto", on);
+            $("main").classList.toggle("oculto", !on);
+            $("usuario-logado").classList.toggle("oculto", !on);
+            $("subtitulo-cabecalho").classList.toggle("oculto", on);
+            if (!on) return;
+            $("nome-usuario").textContent = sessao.nome + " (" + sessao.perfil + ")";
+            document.querySelectorAll("[data-perfis]").forEach((el) =>
+                el.classList.toggle("oculto", !el.dataset.perfis.split(" ").includes(sessao.perfil)));
+            fechar();
+        }
+
+        // ===== ABRIR / FECHAR TELAS =====
+        function fechar() { document.querySelectorAll(".painel.ativo").forEach((p) => p.classList.remove("ativo")); }
+        function abrir(n) { fechar(); $("tela-" + n).classList.add("ativo"); if (n === "fila") carregarFila(); }
+        document.querySelectorAll("[data-abrir]").forEach((b) => b.onclick = () => abrir(b.dataset.abrir));
+        document.querySelectorAll("[data-fechar]").forEach((b) => b.onclick = fechar);
+
+        // ===== BUSCAR PACIENTE: GET /api/pacientes/{cpf} =====
+        $("form-busca").onsubmit = async (e) => {
+            e.preventDefault();
+            try {
+                const d = await api("/pacientes/" + num($("cpf-busca").value)), p = d.paciente;
+                $("resultado-busca").innerHTML = blocoPerfil(p.nome, p.cpf, p.dataNascimento, p.alergias) + "<h3>Histórico</h3>" +
+                    (d.historico.length ? d.historico.map((h) => `<div class="historico-item"><strong>${new Date(h.data).toLocaleString("pt-BR")}</strong>
+                    — ${esc(h.urgencia)} (${esc(h.status)})<br>Sintomas: ${esc(h.sintomas)}${h.diagnostico ? "<br>Diagnóstico: " + esc(h.diagnostico) : ""}
+                    ${h.prescricao ? "<br>Receita: " + esc(h.prescricao).replace(/\n/g, "<br>") : ""}</div>`).join("") : "<p class='vazio'>Nenhum atendimento anterior.</p>");
+            } catch (x) { $("resultado-busca").innerHTML = `<div class="mensagem visivel erro">${esc(x.message)}</div>`; }
+        };
+
+        // ===== CADASTRAR PACIENTE: POST /api/pacientes =====
+        $("form-cadastro").onsubmit = async (e) => {
+            e.preventDefault();
+            try {
+                await api("/pacientes", "POST", { cpf: num($("cpf-cadastro").value), nome: $("nome-cadastro").value,
+                    dataNascimento: $("nascimento-cadastro").value, alergias: $("alergias-cadastro").value });
+                msg("mensagem-cadastro", "Paciente cadastrado com sucesso.", "sucesso"); e.target.reset();
+            } catch (x) { msg("mensagem-cadastro", x.message); }
+        };
+
+        // ===== TRIAGEM: POST /api/atendimentos =====
+        // Ao completar o CPF, mostra os dados do paciente e o alerta de alergia
+        $("cpf-atendimento").addEventListener("input", async () => {
+            const cpf = num($("cpf-atendimento").value);
+            $("perfil-atendimento").innerHTML = ""; $("alerta-alergia").innerHTML = "";
+            if (cpf.length !== 11) return;
+            try {
+                const p = (await api("/pacientes/" + cpf)).paciente;
+                $("perfil-atendimento").innerHTML = blocoPerfil(p.nome, p.cpf, p.dataNascimento, p.alergias);
+                if (p.alergias !== "Nenhuma informada") $("alerta-alergia").innerHTML = `<div class="alerta">⚠ Atenção: paciente alérgico a ${esc(p.alergias)}</div>`;
+            } catch (x) { msg("mensagem-atendimento", x.message); }
+        });
+
+        $("form-atendimento").onsubmit = async (e) => {
+            e.preventDefault();
+            const risco = document.querySelector('input[name="risco"]:checked');
+            if (!risco) return msg("mensagem-atendimento", "Selecione a classificação de risco.");
+            try {
+                await api("/atendimentos", "POST", { cpf: num($("cpf-atendimento").value), sintomas: $("sintomas").value, urgencia: risco.value });
+                msg("mensagem-atendimento", "Atendimento registrado. Paciente na fila médica.", "sucesso");
+                e.target.reset(); $("perfil-atendimento").innerHTML = ""; $("alerta-alergia").innerHTML = "";
+            } catch (x) { msg("mensagem-atendimento", x.message); }
+        };
+
+        // ===== FILA MÉDICA: GET /api/atendimentos/fila =====
+        const PESO = { "Emergência": 0, "Muito Urgente": 1, "Urgente": 2, "Pouco Urgente": 3, "Não Urgente": 4 };
+
+        async function carregarFila() {
+            try { fila = await api("/atendimentos/fila"); $("mensagem-fila").className = "mensagem"; desenharFila(); }
+            catch (x) { msg("mensagem-fila", x.message); }
+        }
+        function filaOrdenada() {
+            const l = fila.filter((a) => a.status !== "Finalizado");
+            if (ordem === "prioridade") l.sort((a, b) => (PESO[a.urgencia] - PESO[b.urgencia]) || (new Date(a.data) - new Date(b.data)));
+            return l;
+        }
+        function desenharFila() {
+            $("contador-aguardando").textContent = fila.filter((a) => a.status === "Aguardando").length;
+            $("contador-atendimento").textContent = fila.filter((a) => a.status === "Em atendimento").length;
+            $("contador-finalizados").textContent = fila.filter((a) => a.status === "Finalizado").length;
+            const l = filaOrdenada();
+            $("lista-fila").innerHTML = l.length ? l.map((a) => `<div class="fila-item ${a.urgencia === "Emergência" ? "critico" : ""}">
+                <div class="fila-topo"><strong>${esc(a.nome)}</strong><span class="badge ${classeUrg(a.urgencia)}">${esc(a.urgencia)}</span></div>
+                <div class="fila-meta">CPF ${esc(a.cpf)} · ${esc(a.status)} · Espera: <span class="tempo-espera">${espera(a.data)}</span></div>
+                <div>${esc(a.sintomas)}</div>
+                <div class="acoes"><button type="button" onclick="atender(${a.id})">${a.status === "Aguardando" ? "Atender" : "Continuar"}</button></div></div>`).join("")
+                : "<p class='vazio'>Nenhum paciente na fila.</p>";
+        }
+        $("ordenar-chegada").onclick = () => { ordem = "chegada"; desenharFila(); };
+        $("ordenar-prioridade").onclick = () => { ordem = "prioridade"; desenharFila(); };
+        $("chamar-proximo").onclick = () => {
+            const p = filaOrdenada().find((a) => a.status === "Aguardando");
+            p ? atender(p.id) : msg("mensagem-fila", "Não há pacientes aguardando.");
+        };
+
+        // ===== ATENDIMENTO MÉDICO =====
+        async function atender(id) {                                // PATCH /api/atendimentos/{id}/status
+            const a = fila.find((x) => x.id === id);
+            try {
+                if (a.status === "Aguardando") { await api("/atendimentos/" + id + "/status", "PATCH", { status: "Em atendimento" }); a.status = "Em atendimento"; }
+                abrirMedico(a);
+            } catch (x) { msg("mensagem-fila", x.message); }
+        }
+        function abrirMedico(a) {
+            atual = a; abrir("medico");
+            $("form-medico").reset(); $("mensagem-medico").className = "mensagem";
+            $("lista-medicamentos").innerHTML = ""; novoMed();
+            $("titulo-atendimento-medico").textContent = a.nome;
+            $("dados-atendimento-medico").innerHTML = blocoPerfil(a.nome, a.cpf, a.dataNascimento, a.alergias);
+            $("resumo-atendimento-medico").innerHTML = `<strong>Classificação:</strong> ${esc(a.urgencia)}<br>
+                <strong>Chegada:</strong> ${new Date(a.data).toLocaleString("pt-BR")}<br><strong>Sintomas:</strong> ${esc(a.sintomas)}`;
+        }
+        $("fechar-medico").onclick = () => abrir("fila");
+
+        function novoMed() {                                        // Cada medicamento é uma linha da receita
+            const d = document.createElement("div"); d.className = "medicamento";
+            d.innerHTML = `<label>Medicamento<input class="m1"></label><label>Dose<input class="m2"></label>
+                <label>Frequência<input class="m3"></label><label>Duração<input class="m4"></label><button type="button" class="secundario">Remover</button>`;
+            d.querySelector("button").onclick = () => d.remove();
+            $("lista-medicamentos").appendChild(d);
+        }
+        $("adicionar-medicamento").onclick = novoMed;
+        const lerMeds = () => [...document.querySelectorAll(".medicamento")]
+            .map((m) => [".m1", ".m2", ".m3", ".m4"].map((c) => m.querySelector(c).value.trim()).filter(Boolean).join(" — ")).filter(Boolean);
+
+        $("form-medico").onsubmit = async (e) => {                  // PATCH /api/atendimentos/{id}/prescricao
+            e.preventDefault();
+            try {
+                await api("/atendimentos/" + atual.id + "/prescricao", "PATCH", { diagnostico: $("medico-diagnostico").value,
+                    conduta: $("medico-conduta").value, observacoes: $("medico-observacoes").value, prescricao: lerMeds().join("\n") });
+                abrir("fila"); msg("mensagem-fila", "Atendimento finalizado com sucesso.", "sucesso");
+            } catch (x) { msg("mensagem-medico", x.message); }
+        };
+
+        $("imprimir-receita").onclick = () => {                     // Preenche a área de impressão e imprime
+            const m = lerMeds();
+            if (!m.length) return msg("mensagem-medico", "Adicione ao menos um medicamento.");
+            $("impressao-paciente").textContent = "Paciente: " + atual.nome + " — CPF " + atual.cpf;
+            $("impressao-data").textContent = "Data: " + new Date().toLocaleString("pt-BR");
+            $("impressao-conteudo").innerHTML = "<ul>" + m.map((x) => "<li>" + esc(x) + "</li>").join("") + "</ul>";
+            const crm = $("medico-crm").value.trim();
+            $("impressao-medico").textContent = sessao.nome + (crm ? " — CRM " + crm : "");
+            window.print();
+        };
+
+        // Atualiza a fila sozinha a cada 30 segundos
+        setInterval(() => { if ($("tela-fila").classList.contains("ativo")) carregarFila(); }, 30000);
+
+        iniciar(); // Mostra a tela certa ao abrir a página
+    </script>
+</body>
+
+</html>

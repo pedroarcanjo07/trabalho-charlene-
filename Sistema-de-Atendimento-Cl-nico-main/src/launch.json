@@ -1,0 +1,16 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Rodar ClinicaApplication",
+      "request": "launch",
+      "mainClass": "com.clinica.ClinicaApplication",
+      "env": {
+        "SUPABASE_DB_URL": "jdbc:postgresql://db.zhmgnitklodzczfqocdd.supabase.co:5432/postgres?sslmode=require",
+        "SUPABASE_DB_USER": "postgres",
+        "SUPABASE_DB_PASSWORD": "sua_senha_do_banco_aqui"
+      }
+    }
+  ]
+}
